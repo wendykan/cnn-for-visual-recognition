@@ -65,7 +65,7 @@ class KNearestNeighbor(object):
     dists = np.zeros((num_test, num_train))
     for i in xrange(num_test):
       for j in xrange(num_train):
-        dists[i,j] = np.sqrt(np.sum( (X[i,:] - self.X_train[j,:])*(X[i,:] - self.X_train[j,:]) ))
+        dists[i,j] = np.sqrt(np.sum( (X[i,:] - self.X_train[j,:])**2 ))
     return dists
 
   def compute_distances_one_loop(self, X):
@@ -83,7 +83,7 @@ class KNearestNeighbor(object):
       # Compute the l2 distance between the ith test point and all training #
       # points, and store the result in dists[i, :].                        #
       #######################################################################
-      dists[i,:] = np.sqrt(np.sum( (X[i,:] - self.X_train)*(X[i,:] - self.X_train), axis=1))
+      dists[i,:] = np.sqrt(np.sum( (X[i,:] - self.X_train)**2, axis=1))
 
       #######################################################################
       #                         END OF YOUR CODE                            #
@@ -113,13 +113,19 @@ class KNearestNeighbor(object):
     #       and two broadcast sums.                                         #
     #########################################################################
 
-    dists = np.sum(X*X, axis = 1)
+    test_square = np.sum(np.square(X),axis=1) # shape (500,)
+    train_square = np.sum(np.square(self.X_train),axis=1) # shape (5000,)
+    test_square = np.tile(test_square, (num_train,1)) # shape (5000,500)
+    train_square = np.tile(train_square, (num_test,1)) # shape (500,5000)
 
-    test_square = np.reshape(np.sum(X*X, axis = 1),(-1,1))
-    train_square = np.reshape(np.sum(self.X_train*self.X_train, axis = 1),(1,-1))
+    testxtrain = np.dot(X, self.X_train.T)
 
-    dists = test_square + train_square - 2*np.dot(X,np.transpose(self.X_train))
-    dists = np.sqrt(dists)
+    dists = np.sqrt(test_square.T + train_square - 2 * testxtrain)
+
+#    test_square = np.reshape(np.sum(X*X, axis = 1),(-1,1))
+#    train_square = np.reshape(np.sum(self.X_train*self.X_train, axis = 1),(1,-1))
+#    dists = test_square + train_square - 2*np.dot(X,np.transpose(self.X_train))
+#    dists = np.sqrt(dists)
 
     #########################################################################
     #                         END OF YOUR CODE                              #
