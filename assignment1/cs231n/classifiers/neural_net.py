@@ -74,11 +74,13 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    H1 = np.maximum(0, X.dot(W1) + b1)
+    scores = H1.dot(W2) + b2
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
-    
+
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
@@ -92,7 +94,13 @@ class TwoLayerNet(object):
     # classifier loss. So that your results match ours, multiply the            #
     # regularization loss by 0.5                                                #
     #############################################################################
-    pass
+
+    correct_class_score = scores[range(N),y]
+    margins = np.maximum(0, scores.T - correct_class_score+1) # scores[range,y] : Cx1, broadcasted sum at NxC
+    loss = -np.log(np.sum(margins) - N) / N # sum over classes and training samples
+    loss += 0.5 * reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
+    print loss
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -104,7 +112,7 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
