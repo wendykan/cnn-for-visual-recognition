@@ -1,0 +1,7 @@
+*.swp
+*.pyc
+.env/*
+cs231n/datasets/
+
+.ipynb_checkpoints/*
+
