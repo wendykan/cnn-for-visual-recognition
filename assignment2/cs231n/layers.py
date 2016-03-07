@@ -178,26 +178,45 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     # the momentum variable to update the running mean and running variance,    #
     # storing your result in the running_mean and running_var variables.        #
     #############################################################################
+
+
+    # getting lots of help from http://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
+
     sample_mean = np.mean(x, axis=0)
     sample_var = np.var(x, axis=0)
 
-    # gate 1:
-    out1 = x - sample_mean
+    #step1: calciulate mean
+    mu = 1./N * np.sum(x, axis = 0)
 
-    # gate 2:
-    out2 = out1 / np.sqrt(sample_var + eps)
+    #step2: substract mean vector of every trainings example
+    xmu = x - mu
 
-    # gate 3:
-    out3 = gamma * out2
+    #step3: following the lower branch - calculation denominator
+    sq = xmu ** 2
 
-    # gate 4:
-    out4 = out3 + beta
+    #step4: calculate variance
+    var = 1./N * np.sum(sq, axis = 0)
 
-#    x_hat = (x - sample_mean) / np.sqrt(sample_var + eps)
-#    out = gamma * x_hat + beta
-    running_mean = momentum * running_mean + (1 - momentum) * sample_mean
-    running_var = momentum * running_var + (1 - momentum) * sample_var
-    cache = (x, out1, out2, out3, sample_mean, sample_var, gamma, beta, eps)
+    #step5: add eps for numerical stability, then sqrt
+    sqrtvar = np.sqrt(var + eps)
+
+    #step6: invert sqrtvar
+    ivar = 1./sqrtvar
+
+    #step7: execute normalization
+    xhat = xmu * ivar
+
+    #step8: Nor the two transformation steps
+    gammax = gamma * xhat
+
+    #step9
+    out = gammax + beta
+
+    #store intermediate
+    cache = (xhat,gamma,xmu,ivar,sqrtvar,var,eps)
+
+    running_mean = momentum * running_mean + (1 - momentum) * mu
+    running_var = momentum * running_var + (1 - momentum) * var
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -248,27 +267,43 @@ def batchnorm_backward(dout, cache):
   # TODO: Implement the backward pass for batch normalization. Store the      #
   # results in the dx, dgamma, and dbeta variables.                           #
   #############################################################################
-  x, out1, out2, out3, sample_mean, sample_var, gamma, beta, eps = cache
-  eps = bn_param.get('eps', 1e-5)
+  xhat,gamma,xmu,ivar,sqrtvar,var,eps = cache
   N, D = dout.shape
 
-#  x_hat = (x - sample_mean) / np.sqrt(sample_var + eps)
+  #step 9
+  dgammaxhat = dout
+  dbeta = np.sum(dout,axis=0)
 
-  # gate 4:
-  dout4 = dout # addition gate: no change
-  dbeta = np.sum(dout4, axis=0)
+  #step 8
+  dxhat = dgammaxhat * gamma
+  dgamma = np.sum(dgammaxhat * xhat,axis=0)
 
-  # gate 3:
-  dout3 = gamma * dout4 # multiplication gate: times the mutiplicant
-  dgamma = np.sum(out2 * dout3, axis=0)
+  #step7 
+  dxmu1 = dxhat * ivar
+  divar = np.sum(dxhat*xmu,axis=0)
 
-  # gate 2:
-  dout2 = dout3 * (1/np.sqrt(sample_var + eps))
+  #step6
+  dsqrtvar = -divar / (sqrtvar ** 2)
 
-  # gate 1:
-  dout1 = dout2
+  #step5
+  dvar = 0.5 * dsqrtvar / np.sqrt(var+eps)
 
+  #step4
+  dsq = 1. /N * np.ones((N,D)) * dvar
 
+  #step 3
+  dxmu2 = 2 * xmu *dsq
+
+  #step 2:
+  dx1 = dxmu1 + dxmu2
+  dmu = -1 * np.sum(dxmu1+dxmu2, axis=0)
+
+  #step 1:
+  dx2 = 1. /N * np.ones((N,D)) * dmu
+
+  #step 0:
+  dx = dx1+dx2
+  
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
