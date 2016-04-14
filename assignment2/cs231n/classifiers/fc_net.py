@@ -306,7 +306,6 @@ class FullyConnectedNet(object):
     grads['W'+str(num_layers)] = dw + reg * self.params['W'+str(num_layers)]
     grads['b'+str(num_layers)] = db
     loss += 0.5*self.reg*np.sum(self.params['W'+str(num_layers)]*self.params['W'+str(num_layers)])
-#    dx_last = dx
 
     for i in reversed(range(1,self.num_layers)):
       if self.use_batchnorm:
