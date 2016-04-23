@@ -266,6 +266,10 @@ class FullyConnectedNet(object):
       else:
         out, caches[i] = affine_relu_forward(x=out, w=self.params['W'+str(i)], b=self.params['b'+str(i)])
 
+      if self.use_dropout:
+        out, dropout_cache = dropout_forward(out, self.dropout_param)
+        caches[i] = (caches[i], dropout_cache)
+
     out, caches[num_layers] = affine_forward(x=out, w=self.params['W'+str(num_layers)], b=self.params['b'+str(num_layers)])
 
     scores = out
@@ -301,6 +305,10 @@ class FullyConnectedNet(object):
     loss += 0.5*self.reg*np.sum(self.params['W'+str(num_layers)]*self.params['W'+str(num_layers)])
 
     for i in range(num_layers-1,0,-1):
+      if self.use_dropout:
+        caches[i], dropout_cache = caches[i]
+        dx_last = dropout_backward(dx_last, dropout_cache)
+      
       if self.use_batchnorm:
         dx_last, dw, grads['b'+str(i)], grads['gamma'+str(i)], grads['beta'+str(i)] = affine_batchnorm_relu_backward(dx_last, caches[i])
       else:
