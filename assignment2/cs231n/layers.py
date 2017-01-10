@@ -462,11 +462,11 @@ def conv_forward_naive(x, w, b, conv_param):
   out = np.empty((N, F, H_out, W_out), dtype=x.dtype)
 
   for n in range(N): #for all data points
-    for f in range(F): #for all channels
+    for f in range(F): #for all filters
       for i in range(0,H,stride):
         for j in range(0,W,stride):
-          window = x_pad[n, :, i:i+HH, j:j+WW]
-          out[n,f,i/stride,j/stride] = np.sum(window * w[f]) + b[f]
+          window = x_pad[n, :, i:i+HH, j:j+WW] # take all the channels
+          out[n,f,i/stride,j/stride] = np.sum(window * w[f]) + b[f] # each element is the sum (over all channels) of the dot products plus bias
 
   #############################################################################
   #                             END OF YOUR CODE                              #
