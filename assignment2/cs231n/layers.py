@@ -492,7 +492,32 @@ def conv_backward_naive(dout, cache):
   #############################################################################
   # TODO: Implement the convolutional backward pass.                          #
   #############################################################################
-  pass
+  x, w, b, conv_param = cache
+  stride, pad = conv_param['stride'], conv_param['pad']
+
+  N, C, H, W = x.shape
+  F, _, HH, WW = w.shape
+  _, _, H_out, W_out = dout.shape
+
+  x_pad = np.pad(x, [(0, 0), (0, 0), (pad, pad), (pad, pad)], mode='constant', constant_values=0)
+
+  dx = np.zeros_like(x_pad)
+  dw = np.zeros_like(w)
+  db = np.zeros_like(b)
+
+  for f in range(F):  # f-th filter
+    for i in range(0,H,stride):
+      for j in range(0,W,stride):
+        for n in range(N):  # n-th input sample
+          x_rf = x_pad[n, :, i:i+HH, j:j+HH]  # current receptive field
+          dy = dout[n, f, i/stride, j/stride]  # current loss
+
+          dw[f] += dy * x_rf
+          db[f] += dy
+          dx[n, :, i:i+HH, j:j+HH] += dy * w[f]
+
+
+  dx = dx[:, :, pad:pad + H, pad:pad + W]
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
