@@ -1,0 +1,6 @@
+*.swp
+*.pyc
+.env/*
+cs231n/datasets/coco_captioning/*
+cs231n/datasets/tiny-imagenet-100-A/*
+
