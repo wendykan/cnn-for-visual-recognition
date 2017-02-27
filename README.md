@@ -4,4 +4,4 @@ Spending some time finishing the assignments from Stanford cs231n (http://cs231n
 
 To run it on Docker 
 
-`docker run -v `pwd`:/home/jovyan/work -it --rm -p 8888:8888 jupyter/scipy-notebook start-notebook.sh --NotebookApp.token=''`
+``docker run -v `pwd`:/home/jovyan/work -it --rm -p 8888:8888 jupyter/scipy-notebook start-notebook.sh --NotebookApp.token=''``
